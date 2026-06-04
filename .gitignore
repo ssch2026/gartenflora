@@ -17,7 +17,7 @@ build/
 
 # Gradle caches
 .gradle/
-gradle/wrapper/gradle-wrapper.jar
+# Note: gradle-wrapper.jar is intentionally committed for reproducible CI builds
 
 # NDK
 .externalNativeBuild/
