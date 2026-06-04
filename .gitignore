@@ -1,0 +1,40 @@
+# Local configuration — NEVER commit
+local.properties
+*.jks
+*.keystore
+
+# Build outputs
+build/
+.gradle/
+*.apk
+*.aab
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+.DS_Store
+
+# Gradle caches
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# NDK
+.externalNativeBuild/
+.cxx/
+
+# Kotlin
+*.class
+
+# Generated files
+gen/
+out/
+captures/
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+
+# Test results
+app/build/reports/
+app/build/test-results/

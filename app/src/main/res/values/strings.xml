@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GartenFlora</string>
+
+    <!-- Navigation -->
+    <string name="nav_aufnahme">Aufnahme</string>
+    <string name="nav_mein_garten">Mein Garten</string>
+    <string name="nav_einstellungen">Einstellungen</string>
+
+    <!-- CaptureScreen -->
+    <string name="capture_title">Pflanze fotografieren</string>
+    <string name="capture_shutter">Aufnahme</string>
+    <string name="capture_identify">Identifizieren</string>
+    <string name="capture_max_photos">Maximal 5 Fotos</string>
+    <string name="capture_organ_leaf">Blatt</string>
+    <string name="capture_organ_flower">Blüte</string>
+    <string name="capture_organ_fruit">Frucht</string>
+    <string name="capture_organ_bark">Rinde</string>
+    <string name="capture_organ_auto">Automatisch</string>
+    <string name="capture_permission_required">Kamerazugriff erforderlich</string>
+    <string name="capture_permission_rationale">Die App benötigt Zugriff auf die Kamera, um Pflanzen zu fotografieren.</string>
+    <string name="capture_permission_grant">Berechtigung erteilen</string>
+    <string name="capture_permission_denied">Kameraberechtigung verweigert. Bitte in den Einstellungen aktivieren.</string>
+    <string name="capture_photo_hint">Mindestens 1 Foto für Identifikation erforderlich</string>
+    <string name="capture_remove_photo">Foto entfernen</string>
+
+    <!-- ResultsScreen -->
+    <string name="results_title">Identifikationsergebnisse</string>
+    <string name="results_empty">Keine Pflanze erkannt</string>
+    <string name="results_empty_hint">Bitte ein klareres Foto einer Pflanze aufnehmen.</string>
+    <string name="results_confidence">Übereinstimmung</string>
+    <string name="results_family">Familie</string>
+    <string name="results_confirm">Auswahl bestätigen</string>
+    <string name="results_cancel">Abbrechen</string>
+    <string name="results_scientific_name">Wissenschaftlicher Name</string>
+    <string name="results_common_name">Deutscher Name</string>
+    <string name="results_loading">Pflanze wird identifiziert…</string>
+    <string name="results_error_network">Keine Netzwerkverbindung</string>
+    <string name="results_error_quota">Tageskontingent erschöpft (429). Bitte morgen erneut versuchen.</string>
+    <string name="results_error_generic">Fehler bei der Identifikation</string>
+
+    <!-- MeinGartenScreen -->
+    <string name="garden_title">Mein Garten</string>
+    <string name="garden_empty">Noch keine Pflanzen gespeichert</string>
+    <string name="garden_empty_hint">Fotografieren Sie eine Pflanze und identifizieren Sie sie.</string>
+    <string name="garden_search_hint">Pflanze suchen…</string>
+    <string name="garden_delete_undo">Beobachtung gelöscht</string>
+    <string name="garden_undo">Rückgängig</string>
+    <string name="garden_loading">Garten wird geladen…</string>
+
+    <!-- DetailScreen -->
+    <string name="detail_title">Pflanzendetails</string>
+    <string name="detail_scientific_name">Wissenschaftlicher Name</string>
+    <string name="detail_common_name">Deutscher Name</string>
+    <string name="detail_family">Familie</string>
+    <string name="detail_genus">Gattung</string>
+    <string name="detail_confidence">Konfidenz</string>
+    <string name="detail_care_notes">Pflegehinweise</string>
+    <string name="detail_user_notes">Eigene Notizen</string>
+    <string name="detail_garden_spot">Gartenstandort</string>
+    <string name="detail_location">Standort</string>
+    <string name="detail_date">Datum</string>
+    <string name="detail_edit">Bearbeiten</string>
+    <string name="detail_save">Speichern</string>
+    <string name="detail_delete">Löschen</string>
+    <string name="detail_delete_confirm">Beobachtung wirklich löschen?</string>
+    <string name="detail_delete_yes">Löschen</string>
+    <string name="detail_capture_location">Standort erfassen</string>
+    <string name="detail_location_capturing">Standort wird ermittelt…</string>
+    <string name="detail_gemini_hint">Pflegehinweise werden von Google Gemini generiert (Artname wird übermittelt)</string>
+    <string name="detail_generate_care_notes">Pflegehinweise generieren</string>
+    <string name="detail_loading">Wird geladen…</string>
+    <string name="detail_custom_name">Eigener Name</string>
+    <string name="detail_custom_name_hint">z.B. \"Meine Tomate\"</string>
+    <string name="detail_garden_spot_hint">z.B. \"Hochbeet Nord\"</string>
+    <string name="detail_notes_hint">Ihre Beobachtungen…</string>
+
+    <!-- SettingsScreen -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_plantnet_project">Pl@ntNet-Projekt</string>
+    <string name="settings_plantnet_project_hint">Projekt für die Identifikation</string>
+    <string name="settings_gemini_enabled">Gemini-Pflegehinweise aktivieren</string>
+    <string name="settings_gemini_hint">Wissenschaftlicher Artname wird an Google gesendet</string>
+    <string name="settings_gemini_unavailable">Gemini API-Schlüssel nicht konfiguriert</string>
+    <string name="settings_daily_usage">Tagesnutzung</string>
+    <string name="settings_daily_usage_hint">Pl@ntNet kostenlos: 500 Anfragen/Tag</string>
+    <string name="settings_loading_projects">Projekte werden geladen…</string>
+    <string name="settings_projects_error">Projekte konnten nicht geladen werden</string>
+    <string name="settings_about">Über GartenFlora</string>
+    <string name="settings_version">Version</string>
+
+    <!-- Common -->
+    <string name="error_generic">Ein Fehler ist aufgetreten</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="loading">Wird geladen…</string>
+    <string name="photo">Foto</string>
+    <string name="unknown">Unbekannt</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+
+    <!-- Themes (needed for manifest) -->
+    <string name="theme_label">GartenFlora</string>
+</resources>
