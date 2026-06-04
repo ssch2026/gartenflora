@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Leaf shape representing GartenFlora -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 C54,20 80,40 80,62 C80,76 68,88 54,88 C40,88 28,76 28,62 C28,40 54,20 54,20 Z" />
+    <path
+        android:strokeColor="#4CAF50"
+        android:strokeWidth="2"
+        android:pathData="M54,88 C54,88 54,40 54,20"
+        android:fillColor="@android:color/transparent" />
+</vector>
