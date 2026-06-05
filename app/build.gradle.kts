@@ -144,9 +144,9 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     // Firebase (BOM manages all versions)
+    // Storage removed — requires Blaze plan. Re-add when upgrading.
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
 
     // Unit Tests

@@ -1,21 +1,17 @@
 package de.gartenflora.data.firebase
 
-import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.storage.FirebaseStorage
 import de.gartenflora.domain.model.PlantObservation
 import kotlinx.coroutines.tasks.await
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class FirestoreService @Inject constructor(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val firestore: FirebaseFirestore
 ) {
 
     /** Sign in anonymously if no current user. Safe to call multiple times. */
@@ -31,8 +27,9 @@ class FirestoreService @Inject constructor(
 
     suspend fun syncObservation(observation: PlantObservation) {
         val uid = uid() ?: return
-        val photoUrls = uploadPhotos(uid, observation.photoPaths)
-        val doc = observation.toMap(photoUrls)
+        // Photo upload requires Firebase Storage (Blaze plan). Skipped on Spark plan —
+        // photos stay local only. Enable by upgrading to Blaze in the Firebase Console.
+        val doc = observation.toMap(photoUrls = emptyList())
         firestore
             .collection("users").document(uid)
             .collection("observations").document(observation.id.toString())
@@ -48,22 +45,6 @@ class FirestoreService @Inject constructor(
             .delete()
             .await()
     }
-
-    // ── Photos ────────────────────────────────────────────────────────────────
-
-    /** Upload local photo files; returns list of download URLs (skips missing files). */
-    private suspend fun uploadPhotos(uid: String, localPaths: List<String>): List<String> =
-        localPaths.mapNotNull { path ->
-            try {
-                val file = File(path)
-                if (!file.exists()) return@mapNotNull null
-                val ref = storage.reference.child("users/$uid/photos/${file.name}")
-                ref.putFile(Uri.fromFile(file)).await()
-                ref.downloadUrl.await().toString()
-            } catch (_: Exception) {
-                null
-            }
-        }
 
     // ── Mapping ───────────────────────────────────────────────────────────────
 
