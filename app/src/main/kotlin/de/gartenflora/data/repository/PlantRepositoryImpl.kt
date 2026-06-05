@@ -31,6 +31,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -54,13 +55,13 @@ class PlantRepositoryImpl @Inject constructor(
     // ── Local observation CRUD ────────────────────────────────────────────────
 
     override fun observeAllObservations(): Flow<List<PlantObservation>> =
-        dao.observeAll().map { it.map(PlantObservationEntity::toDomain) }
+        dao.observeAll().map { list -> list.map { it.toDomain() } }
 
     override fun observeObservation(id: Long): Flow<PlantObservation?> =
         dao.observeById(id).map { it?.toDomain() }
 
     override fun searchObservations(query: String): Flow<List<PlantObservation>> =
-        dao.searchByName(query).map { it.map(PlantObservationEntity::toDomain) }
+        dao.searchByName(query).map { list -> list.map { it.toDomain() } }
 
     override suspend fun getObservation(id: Long): PlantObservation? =
         dao.getById(id)?.toDomain()
@@ -106,10 +107,19 @@ class PlantRepositoryImpl @Inject constructor(
         organs: List<String>,
         project: String
     ): Result<List<PlantCandidate>> = runCatching {
-        val imageParts = imagePaths.map { path ->
-            val file = File(path)
+        val imageParts = imagePaths.map { pathOrUri ->
+            val (filename, bytes) = if (pathOrUri.startsWith("content://")) {
+                val uri = Uri.parse(pathOrUri)
+                val name = "photo_${System.currentTimeMillis()}.jpg"
+                val data = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    ?: throw IllegalArgumentException("Cannot read image: $pathOrUri")
+                name to data
+            } else {
+                val file = File(pathOrUri)
+                file.name to file.readBytes()
+            }
             MultipartBody.Part.createFormData(
-                "images", file.name, file.asRequestBody("image/jpeg".toMediaType())
+                "images", filename, bytes.toRequestBody("image/jpeg".toMediaType())
             )
         }
         val organParts = organs.map { organ ->

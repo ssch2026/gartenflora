@@ -114,6 +114,7 @@ dependencies {
     implementation(libs.camerax.camera2)
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
+    implementation("com.google.guava:guava:33.3.1-android")
 
     // Retrofit + OkHttp
     implementation(libs.retrofit)

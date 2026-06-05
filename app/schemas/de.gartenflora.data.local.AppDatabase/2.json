@@ -1,0 +1,245 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "0e5072074e5e13c5333db016e1899002",
+    "entities": [
+      {
+        "tableName": "plant_observations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `custom_name` TEXT, `scientific_name` TEXT NOT NULL, `common_name_de` TEXT, `family` TEXT, `genus` TEXT, `confidence` REAL NOT NULL, `gbif_id` TEXT, `photo_paths` TEXT NOT NULL, `latitude` REAL, `longitude` REAL, `garden_spot` TEXT, `care_notes` TEXT, `user_notes` TEXT, `created_at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "customName",
+            "columnName": "custom_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "scientificName",
+            "columnName": "scientific_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commonNameDe",
+            "columnName": "common_name_de",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "family",
+            "columnName": "family",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "genus",
+            "columnName": "genus",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "confidence",
+            "columnName": "confidence",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gbifId",
+            "columnName": "gbif_id",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "photoPaths",
+            "columnName": "photo_paths",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "gardenSpot",
+            "columnName": "garden_spot",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "careNotes",
+            "columnName": "care_notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "userNotes",
+            "columnName": "user_notes",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "garden_zones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `grid_cols` INTEGER NOT NULL, `grid_rows` INTEGER NOT NULL, `cell_size_cm` INTEGER NOT NULL, `background_photo_path` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridCols",
+            "columnName": "grid_cols",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gridRows",
+            "columnName": "grid_rows",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cellSizeCm",
+            "columnName": "cell_size_cm",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backgroundPhotoPath",
+            "columnName": "background_photo_path",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "garden_cells",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `zone_id` INTEGER NOT NULL, `row` INTEGER NOT NULL, `col` INTEGER NOT NULL, `observation_id` INTEGER NOT NULL, FOREIGN KEY(`zone_id`) REFERENCES `garden_zones`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zoneId",
+            "columnName": "zone_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "row",
+            "columnName": "row",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "col",
+            "columnName": "col",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observationId",
+            "columnName": "observation_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_garden_cells_zone_id_row_col",
+            "unique": true,
+            "columnNames": [
+              "zone_id",
+              "row",
+              "col"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_garden_cells_zone_id_row_col` ON `${TABLE_NAME}` (`zone_id`, `row`, `col`)"
+          },
+          {
+            "name": "index_garden_cells_zone_id",
+            "unique": false,
+            "columnNames": [
+              "zone_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_garden_cells_zone_id` ON `${TABLE_NAME}` (`zone_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "garden_zones",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "zone_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0e5072074e5e13c5333db016e1899002')"
+    ]
+  }
+}
