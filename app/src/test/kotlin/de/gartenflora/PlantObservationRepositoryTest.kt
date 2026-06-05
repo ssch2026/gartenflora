@@ -1,17 +1,21 @@
 package de.gartenflora
 
 import app.cash.turbine.test
-import de.gartenflora.data.remote.GeminiApiService
-import de.gartenflora.data.remote.PlantNetApiService
+import de.gartenflora.data.firebase.FirestoreService
 import de.gartenflora.data.local.PlantObservationDao
 import de.gartenflora.data.local.PlantObservationEntity
+import de.gartenflora.data.remote.GeminiApiService
+import de.gartenflora.data.remote.PlantIdApiService
+import de.gartenflora.data.remote.PlantNetApiService
 import de.gartenflora.data.repository.PlantRepositoryImpl
 import de.gartenflora.domain.model.PlantObservation
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -27,30 +31,36 @@ class PlantObservationRepositoryTest {
     private lateinit var dao: PlantObservationDao
     private lateinit var plantNetApi: PlantNetApiService
     private lateinit var geminiApi: GeminiApiService
+    private lateinit var plantIdApi: PlantIdApiService
+    private lateinit var firestoreService: FirestoreService
     private lateinit var repository: PlantRepositoryImpl
     private val json = Json { ignoreUnknownKeys = true }
+    private val testScope = CoroutineScope(UnconfinedTestDispatcher())
 
     @Before
     fun setup() {
         dao = mockk(relaxed = true)
         plantNetApi = mockk()
         geminiApi = mockk()
+        plantIdApi = mockk()
+        firestoreService = mockk(relaxed = true) // relaxed: Firebase is fire-and-forget
         repository = PlantRepositoryImpl(
             dao = dao,
             plantNetApi = plantNetApi,
             geminiApi = geminiApi,
+            plantIdApi = plantIdApi,
+            firestoreService = firestoreService,
             plantNetApiKey = "test_key",
-            geminiApiKey = "test_gemini_key"
+            geminiApiKey = "test_gemini_key",
+            appScope = testScope
         )
     }
 
+    // ── CRUD ──────────────────────────────────────────────────────────────────
+
     @Test
-    fun `saveObservation inserts entity into dao`() = runTest {
-        val observation = PlantObservation(
-            scientificName = "Betula pendula",
-            commonNameDe = "Sandbirke",
-            confidence = 0.9f
-        )
+    fun `saveObservation inserts entity into dao and returns generated id`() = runTest {
+        val observation = PlantObservation(scientificName = "Betula pendula", confidence = 0.9f)
         coEvery { dao.insert(any()) } returns 42L
 
         val result = repository.saveObservation(observation)
@@ -62,8 +72,6 @@ class PlantObservationRepositoryTest {
 
     @Test
     fun `deleteObservation calls dao deleteById`() = runTest {
-        coEvery { dao.deleteById(1L) } returns Unit
-
         val result = repository.deleteObservation(1L)
 
         assertTrue(result.isSuccess)
@@ -71,20 +79,24 @@ class PlantObservationRepositoryTest {
     }
 
     @Test
+    fun `updateObservation calls dao update`() = runTest {
+        val observation = PlantObservation(id = 5L, scientificName = "Rosa canina", confidence = 0.8f)
+
+        val result = repository.updateObservation(observation)
+
+        assertTrue(result.isSuccess)
+        coVerify(exactly = 1) { dao.update(any()) }
+    }
+
+    @Test
     fun `observeAllObservations maps entities to domain models`() = runTest {
-        val entity = buildEntity(
-            id = 1L,
-            scientificName = "Acer platanoides",
-            commonNameDe = "Spitzahorn",
-            confidence = 0.85f
-        )
+        val entity = buildEntity(id = 1L, scientificName = "Acer platanoides", confidence = 0.85f)
         every { dao.observeAll() } returns flowOf(listOf(entity))
 
         repository.observeAllObservations().test {
             val observations = awaitItem()
             assertEquals(1, observations.size)
             assertEquals("Acer platanoides", observations[0].scientificName)
-            assertEquals("Spitzahorn", observations[0].commonNameDe)
             assertEquals(0.85f, observations[0].confidence)
             assertEquals(1L, observations[0].id)
             awaitComplete()
@@ -93,11 +105,7 @@ class PlantObservationRepositoryTest {
 
     @Test
     fun `getObservation by id returns domain model`() = runTest {
-        val entity = buildEntity(
-            id = 5L,
-            scientificName = "Fagus sylvatica",
-            confidence = 0.99f
-        )
+        val entity = buildEntity(id = 5L, scientificName = "Fagus sylvatica", confidence = 0.99f)
         coEvery { dao.getById(5L) } returns entity
 
         val result = repository.getObservation(5L)
@@ -111,13 +119,11 @@ class PlantObservationRepositoryTest {
     fun `getObservation returns null when not found`() = runTest {
         coEvery { dao.getById(99L) } returns null
 
-        val result = repository.getObservation(99L)
-
-        assertNull(result)
+        assertNull(repository.getObservation(99L))
     }
 
     @Test
-    fun `observeAllObservations with photo paths deserializes correctly`() = runTest {
+    fun `observeAllObservations deserializes photo paths correctly`() = runTest {
         val paths = listOf("/path/photo1.jpg", "/path/photo2.jpg")
         val entity = buildEntity(
             scientificName = "Rosa canina",
@@ -127,11 +133,25 @@ class PlantObservationRepositoryTest {
         every { dao.observeAll() } returns flowOf(listOf(entity))
 
         repository.observeAllObservations().test {
-            val observations = awaitItem()
-            assertEquals(paths, observations[0].photoPaths)
+            assertEquals(paths, awaitItem()[0].photoPaths)
             awaitComplete()
         }
     }
+
+    @Test
+    fun `saveObservation succeeds even when Firebase is unavailable`() = runTest {
+        coEvery { dao.insert(any()) } returns 1L
+        coEvery { firestoreService.ensureSignedIn() } throws Exception("No network")
+
+        val result = repository.saveObservation(
+            PlantObservation(scientificName = "Rosa canina", confidence = 0.9f)
+        )
+
+        // Local write must succeed regardless of Firebase
+        assertTrue(result.isSuccess)
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun buildEntity(
         id: Long = 0L,
