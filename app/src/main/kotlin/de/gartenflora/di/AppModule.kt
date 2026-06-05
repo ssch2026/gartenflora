@@ -14,10 +14,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import de.gartenflora.BuildConfig
 import de.gartenflora.data.local.AppDatabase
+import de.gartenflora.data.local.GardenCellDao
+import de.gartenflora.data.local.GardenZoneDao
 import de.gartenflora.data.local.PlantObservationDao
 import de.gartenflora.data.remote.GeminiApiService
 import de.gartenflora.data.remote.PlantIdApiService
 import de.gartenflora.data.remote.PlantNetApiService
+import de.gartenflora.data.repository.GardenRepository
+import de.gartenflora.data.repository.GardenRepositoryImpl
 import de.gartenflora.data.repository.PlantRepository
 import de.gartenflora.data.repository.PlantRepositoryImpl
 import kotlinx.coroutines.CoroutineScope
@@ -192,12 +196,24 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "gartenflora.db").build()
+        Room.databaseBuilder(context, AppDatabase::class.java, "gartenflora.db")
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides
     @Singleton
     fun providePlantObservationDao(db: AppDatabase): PlantObservationDao =
         db.plantObservationDao()
+
+    @Provides
+    @Singleton
+    fun provideGardenZoneDao(db: AppDatabase): GardenZoneDao =
+        db.gardenZoneDao()
+
+    @Provides
+    @Singleton
+    fun provideGardenCellDao(db: AppDatabase): GardenCellDao =
+        db.gardenCellDao()
 }
 
 @Module
@@ -207,4 +223,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPlantRepository(impl: PlantRepositoryImpl): PlantRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGardenRepository(impl: GardenRepositoryImpl): GardenRepository
 }

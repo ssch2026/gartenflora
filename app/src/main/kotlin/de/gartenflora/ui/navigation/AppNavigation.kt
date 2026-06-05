@@ -3,6 +3,7 @@ package de.gartenflora.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -27,6 +28,8 @@ import de.gartenflora.ui.capture.CaptureScreen
 import de.gartenflora.ui.detail.DetailScreen
 import de.gartenflora.ui.diagnose.DiagnoseScreen
 import de.gartenflora.ui.garden.MeinGartenScreen
+import de.gartenflora.ui.gardenplan.GridScreen
+import de.gartenflora.ui.gardenplan.ZoneListScreen
 import de.gartenflora.ui.results.ResultsScreen
 import de.gartenflora.ui.settings.SettingsScreen
 
@@ -43,6 +46,10 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object Diagnose : Screen("diagnose/{observationId}") {
         fun createRoute(observationId: Long) = "diagnose/$observationId"
+    }
+    object GardenPlan : Screen("garden_plan")
+    object GardenGrid : Screen("garden_grid/{zoneId}") {
+        fun createRoute(zoneId: Long) = "garden_grid/$zoneId"
     }
 }
 
@@ -66,6 +73,11 @@ fun AppNavigation() {
             screen = Screen.MeinGarten,
             labelRes = R.string.nav_mein_garten,
             icon = { Icon(Icons.Filled.LocalFlorist, contentDescription = null) }
+        ),
+        BottomNavItem(
+            screen = Screen.GardenPlan,
+            labelRes = R.string.nav_gartenplan,
+            icon = { Icon(Icons.Filled.GridView, contentDescription = null) }
         ),
         BottomNavItem(
             screen = Screen.Settings,
@@ -175,6 +187,26 @@ fun AppNavigation() {
             }
             composable(Screen.Settings.route) {
                 SettingsScreen()
+            }
+            composable(Screen.GardenPlan.route) {
+                ZoneListScreen(
+                    onNavigateToGrid = { zoneId ->
+                        navController.navigate(Screen.GardenGrid.createRoute(zoneId))
+                    }
+                )
+            }
+            composable(
+                route = Screen.GardenGrid.route,
+                arguments = listOf(navArgument("zoneId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val zoneId = backStackEntry.arguments?.getLong("zoneId") ?: 0L
+                GridScreen(
+                    zoneId = zoneId,
+                    onNavigateUp = { navController.navigateUp() },
+                    onNavigateToDetail = { obsId ->
+                        navController.navigate(Screen.Detail.createRoute(obsId))
+                    }
+                )
             }
             composable(
                 route = Screen.Diagnose.route,

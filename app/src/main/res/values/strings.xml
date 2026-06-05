@@ -100,6 +100,33 @@
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
 
+    <!-- Navigation -->
+    <string name="nav_gartenplan">Gartenplan</string>
+
+    <!-- GardenPlan / ZoneList -->
+    <string name="gardenplan_title">Gartenplan</string>
+    <string name="gardenplan_add_zone">Bereich anlegen</string>
+    <string name="gardenplan_new_zone">Neuer Bereich</string>
+    <string name="gardenplan_edit_zone">Bereich bearbeiten</string>
+    <string name="gardenplan_zone_name">Name (z.B. Hochbeet Nord)</string>
+    <string name="gardenplan_cols">Spalten</string>
+    <string name="gardenplan_rows">Reihen</string>
+    <string name="gardenplan_cell_size_cm">Zellgröße (cm)</string>
+    <string name="gardenplan_cells">Felder</string>
+    <string name="gardenplan_create">Anlegen</string>
+    <string name="gardenplan_save">Speichern</string>
+    <string name="gardenplan_empty">Noch keine Bereiche angelegt</string>
+    <string name="gardenplan_empty_hint">Tippen Sie auf + um einen Gartenbereich anzulegen.</string>
+
+    <!-- GardenPlan / Grid -->
+    <string name="gardenplan_grid_title">Rasterplan</string>
+    <string name="gardenplan_pick_plant">Pflanze auswählen</string>
+    <string name="gardenplan_search_plant">Pflanze suchen…</string>
+    <string name="gardenplan_no_plants">Keine Pflanzen im Garten. Erst eine Pflanze identifizieren.</string>
+    <string name="gardenplan_cell_detail">Pflanze an dieser Stelle</string>
+    <string name="gardenplan_view_details">Details</string>
+    <string name="gardenplan_remove_plant">Entfernen</string>
+
     <!-- DetailScreen — Plant.id -->
     <string name="detail_diagnose">Pflanze untersuchen (Plant.id)</string>
 
