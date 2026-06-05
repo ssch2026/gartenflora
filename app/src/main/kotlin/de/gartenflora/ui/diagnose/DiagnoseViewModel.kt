@@ -8,11 +8,14 @@ import de.gartenflora.data.repository.PlantRepository
 import de.gartenflora.domain.model.DiagnoseResult
 import de.gartenflora.domain.model.PlantObservation
 import de.gartenflora.domain.usecase.GetObservationsUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,6 +30,9 @@ data class DiagnoseUiState(
     val plantIdAvailable: Boolean = BuildConfig.PLANTID_API_KEY.isNotBlank()
 }
 
+private val EMPTY_OBSERVATION = PlantObservation(scientificName = "", confidence = 0f)
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class DiagnoseViewModel @Inject constructor(
     private val plantRepository: PlantRepository,
@@ -36,16 +42,22 @@ class DiagnoseViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DiagnoseUiState())
     val uiState: StateFlow<DiagnoseUiState> = _uiState.asStateFlow()
 
-    lateinit var observation: StateFlow<PlantObservation>
+    // ID driven via MutableStateFlow — observation is always initialized, never lateinit.
+    private val _observationId = MutableStateFlow(0L)
+
+    val observation: StateFlow<PlantObservation> = _observationId
+        .flatMapLatest { id ->
+            if (id == 0L) flowOf(EMPTY_OBSERVATION)
+            else getObservationsUseCase.observeById(id).filterNotNull()
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = EMPTY_OBSERVATION
+        )
 
     fun init(observationId: Long) {
-        observation = getObservationsUseCase.observeById(observationId)
-            .filterNotNull()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = PlantObservation(scientificName = "", confidence = 0f)
-            )
+        _observationId.value = observationId
     }
 
     fun selectPhoto(index: Int) {
@@ -65,7 +77,7 @@ class DiagnoseViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null, result = null) }
             plantRepository.diagnoseHealth(
                 imagePath = path,
-                latitude  = obs.latitude,
+                latitude = obs.latitude,
                 longitude = obs.longitude
             ).fold(
                 onSuccess = { result ->

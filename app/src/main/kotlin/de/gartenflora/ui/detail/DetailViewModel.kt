@@ -15,11 +15,14 @@ import de.gartenflora.domain.model.PlantObservation
 import de.gartenflora.domain.usecase.DeleteObservationUseCase
 import de.gartenflora.domain.usecase.EnrichWithGeminiUseCase
 import de.gartenflora.domain.usecase.GetObservationsUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,6 +44,9 @@ data class DetailUiState(
     val plantIdAvailable: Boolean = BuildConfig.PLANTID_API_KEY.isNotBlank()
 }
 
+private val EMPTY_OBSERVATION = PlantObservation(scientificName = "", confidence = 0f)
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -53,22 +59,24 @@ class DetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
+    // ID driven via MutableStateFlow so observation is always initialized (never lateinit).
+    private val _observationId = MutableStateFlow(0L)
     private var observationId: Long = 0L
 
-    lateinit var observation: StateFlow<PlantObservation>
+    val observation: StateFlow<PlantObservation> = _observationId
+        .flatMapLatest { id ->
+            if (id == 0L) flowOf(EMPTY_OBSERVATION)
+            else getObservationsUseCase.observeById(id).filterNotNull()
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = EMPTY_OBSERVATION
+        )
 
     fun init(id: Long) {
         observationId = id
-        observation = getObservationsUseCase.observeById(id)
-            .filterNotNull()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = PlantObservation(
-                    scientificName = "",
-                    confidence = 0f
-                )
-            )
+        _observationId.value = id
         _uiState.update { it.copy(isLoading = false) }
     }
 
@@ -142,10 +150,7 @@ class DetailViewModel @Inject constructor(
                     ).value
                     obs?.let {
                         plantRepository.updateObservation(
-                            it.copy(
-                                latitude = location.latitude,
-                                longitude = location.longitude
-                            )
+                            it.copy(latitude = location.latitude, longitude = location.longitude)
                         )
                     }
                 }
@@ -165,18 +170,11 @@ class DetailViewModel @Inject constructor(
                     val obs = getObservationsUseCase.observeById(observationId).stateIn(
                         viewModelScope, SharingStarted.Eagerly, null
                     ).value
-                    obs?.let {
-                        plantRepository.updateObservation(it.copy(careNotes = careNotes))
-                    }
+                    obs?.let { plantRepository.updateObservation(it.copy(careNotes = careNotes)) }
                     _uiState.update { it.copy(isGeneratingCareNotes = false) }
                 },
                 onFailure = { error ->
-                    _uiState.update {
-                        it.copy(
-                            isGeneratingCareNotes = false,
-                            error = error.message
-                        )
-                    }
+                    _uiState.update { it.copy(isGeneratingCareNotes = false, error = error.message) }
                 }
             )
         }
