@@ -1,7 +1,9 @@
 package de.gartenflora.ui.capture
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.core.content.ContextCompat
@@ -14,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -29,7 +30,7 @@ enum class OrganType(val apiValue: String, val displayKey: String) {
 }
 
 data class CapturedPhoto(
-    val path: String,
+    val uri: String,        // content:// URI — Google Photos picks this up automatically
     val organ: OrganType = OrganType.AUTO
 )
 
@@ -54,13 +55,20 @@ class CaptureViewModel @Inject constructor(
     fun capturePhoto(imageCapture: ImageCapture) {
         if (_uiState.value.capturedPhotos.size >= 5) return
 
-        val photoDir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES)
-            ?: return
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.getDefault())
-            .format(Date())
-        val photoFile = File(photoDir, "PLANT_${timestamp}.jpg")
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.getDefault()).format(Date())
+        val filename = "PLANT_${timestamp}.jpg"
 
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+        // Save into Pictures/GartenFlora/ — Google Photos backs this up automatically
+        val contentValues = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, filename)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/GartenFlora")
+        }
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(
+            context.contentResolver,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        ).build()
 
         _uiState.update { it.copy(isCapturing = true, error = null) }
 
@@ -69,10 +77,10 @@ class CaptureViewModel @Inject constructor(
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val path = photoFile.absolutePath
+                    val uri = output.savedUri?.toString() ?: return
                     _uiState.update { state ->
                         state.copy(
-                            capturedPhotos = state.capturedPhotos + CapturedPhoto(path = path),
+                            capturedPhotos = state.capturedPhotos + CapturedPhoto(uri = uri),
                             isCapturing = false
                         )
                     }
@@ -90,7 +98,10 @@ class CaptureViewModel @Inject constructor(
             val newPhotos = state.capturedPhotos.toMutableList()
             if (index in newPhotos.indices) {
                 val removed = newPhotos.removeAt(index)
-                File(removed.path).delete()
+                // Delete from MediaStore so it doesn't linger in Google Photos
+                try {
+                    context.contentResolver.delete(Uri.parse(removed.uri), null, null)
+                } catch (_: Exception) { /* ignore */ }
             }
             state.copy(capturedPhotos = newPhotos)
         }
@@ -110,13 +121,7 @@ class CaptureViewModel @Inject constructor(
         _uiState.update { it.copy(error = null) }
     }
 
-    fun getImagePathsJson(): String {
-        val paths = _uiState.value.capturedPhotos.map { it.path }
-        return paths.joinToString(",")
-    }
+    fun getImagePathsJson(): String = _uiState.value.capturedPhotos.joinToString(",") { it.uri }
 
-    fun getOrgansJson(): String {
-        val organs = _uiState.value.capturedPhotos.map { it.organ.apiValue }
-        return organs.joinToString(",")
-    }
+    fun getOrgansJson(): String = _uiState.value.capturedPhotos.joinToString(",") { it.organ.apiValue }
 }

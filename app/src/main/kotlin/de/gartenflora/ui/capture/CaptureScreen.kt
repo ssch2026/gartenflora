@@ -332,7 +332,7 @@ fun PhotoThumbnailItem(
             .clickable { onSelect() }
     ) {
         AsyncImage(
-            model = photo.path,
+            model = photo.uri,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()

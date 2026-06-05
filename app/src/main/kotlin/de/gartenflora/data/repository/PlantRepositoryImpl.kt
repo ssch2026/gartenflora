@@ -1,7 +1,9 @@
 package de.gartenflora.data.repository
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Base64
 import de.gartenflora.data.firebase.FirestoreService
 import de.gartenflora.data.local.PlantObservationDao
@@ -13,6 +15,7 @@ import de.gartenflora.data.remote.dto.GeminiRequest
 import de.gartenflora.data.remote.dto.GeminiRequestContent
 import de.gartenflora.data.remote.dto.GeminiRequestPart
 import de.gartenflora.data.remote.dto.PlantIdHealthRequest
+import dagger.hilt.android.qualifiers.ApplicationContext
 import de.gartenflora.di.ApplicationScope
 import de.gartenflora.domain.model.DiagnoseResult
 import de.gartenflora.domain.model.DiseaseItem
@@ -35,6 +38,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class PlantRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val dao: PlantObservationDao,
     private val plantNetApi: PlantNetApiService,
     private val geminiApi: GeminiApiService,
@@ -195,16 +199,19 @@ class PlantRepositoryImpl @Inject constructor(
 
     // ── Image helpers ─────────────────────────────────────────────────────────
 
-    private fun encodeImageToBase64(path: String): String {
-        val bitmap = BitmapFactory.decodeFile(path)
-            ?: throw IllegalArgumentException("Cannot decode image: $path")
+    private fun encodeImageToBase64(pathOrUri: String): String {
+        val bitmap = if (pathOrUri.startsWith("content://")) {
+            context.contentResolver.openInputStream(Uri.parse(pathOrUri))
+                ?.use { BitmapFactory.decodeStream(it) }
+        } else {
+            BitmapFactory.decodeFile(pathOrUri)
+        } ?: throw IllegalArgumentException("Cannot decode image: $pathOrUri")
+
         val out = ByteArrayOutputStream()
-        // Compress to max ~800px wide to keep payload small
+        // Scale to max 800px wide to keep the Plant.id payload small
         val scaled = if (bitmap.width > 800) {
             val ratio = 800f / bitmap.width
-            Bitmap.createScaledBitmap(
-                bitmap, 800, (bitmap.height * ratio).toInt(), true
-            )
+            Bitmap.createScaledBitmap(bitmap, 800, (bitmap.height * ratio).toInt(), true)
         } else bitmap
         scaled.compress(Bitmap.CompressFormat.JPEG, 80, out)
         return Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)

@@ -1,6 +1,7 @@
 package de.gartenflora
 
 import app.cash.turbine.test
+import android.content.Context
 import de.gartenflora.data.firebase.FirestoreService
 import de.gartenflora.data.local.PlantObservationDao
 import de.gartenflora.data.local.PlantObservationEntity
@@ -28,6 +29,7 @@ import org.junit.Test
 
 class PlantObservationRepositoryTest {
 
+    private lateinit var context: Context
     private lateinit var dao: PlantObservationDao
     private lateinit var plantNetApi: PlantNetApiService
     private lateinit var geminiApi: GeminiApiService
@@ -39,12 +41,14 @@ class PlantObservationRepositoryTest {
 
     @Before
     fun setup() {
+        context = mockk(relaxed = true)
         dao = mockk(relaxed = true)
         plantNetApi = mockk()
         geminiApi = mockk()
         plantIdApi = mockk()
         firestoreService = mockk(relaxed = true) // relaxed: Firebase is fire-and-forget
         repository = PlantRepositoryImpl(
+            context = context,
             dao = dao,
             plantNetApi = plantNetApi,
             geminiApi = geminiApi,
