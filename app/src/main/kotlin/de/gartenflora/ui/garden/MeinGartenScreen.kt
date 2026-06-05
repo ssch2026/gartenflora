@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -99,13 +100,19 @@ fun MeinGartenScreen(
                 .padding(paddingValues)
         ) {
             SearchBar(
-                query = searchQuery,
-                onQueryChange = { viewModel.onSearchQueryChange(it) },
-                onSearch = { isSearchActive = false },
-                active = isSearchActive,
-                onActiveChange = { isSearchActive = it },
-                placeholder = { Text(stringResource(R.string.garden_search_hint)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = searchQuery,
+                        onQueryChange = { viewModel.onSearchQueryChange(it) },
+                        onSearch = { isSearchActive = false },
+                        expanded = isSearchActive,
+                        onExpandedChange = { isSearchActive = it },
+                        placeholder = { Text(stringResource(R.string.garden_search_hint)) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    )
+                },
+                expanded = isSearchActive,
+                onExpandedChange = { isSearchActive = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
