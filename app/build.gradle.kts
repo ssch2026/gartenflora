@@ -36,6 +36,11 @@ android {
         )
         buildConfigField(
             "String",
+            "PLANTID_API_KEY",
+            "\"${localProperties.getProperty("PLANTID_API_KEY", "")}\""
+        )
+        buildConfigField(
+            "String",
             "GEMINI_API_KEY",
             "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\""
         )

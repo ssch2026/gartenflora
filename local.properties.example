@@ -4,6 +4,10 @@
 # Pl@ntNet API Key — get yours at https://my.plantnet.org
 PLANTNET_API_KEY=your_plantnet_api_key_here
 
-# Gemini API Key (optional) — enables AI-powered care notes
+# Plant.id API Key — enables disease diagnosis + care notes chat
+# Get yours at https://web.plant.id/api-key-request
+PLANTID_API_KEY=your_plantid_api_key_here
+
+# Gemini API Key (optional, superseded by Plant.id) — legacy care notes
 # Get yours at https://aistudio.google.com/apikey
 # GEMINI_API_KEY=your_gemini_api_key_here
