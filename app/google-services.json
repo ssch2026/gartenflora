@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "911396109169",
+    "project_id": "gardenflora-7d292",
+    "storage_bucket": "gardenflora-7d292.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:911396109169:android:70f4cd08584b342c3094d0",
+        "android_client_info": {
+          "package_name": "de.gartenflora"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBz6xexpPYXjbkPt9UiEwxnlpoti91_iQk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

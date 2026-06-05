@@ -2,6 +2,9 @@ package de.gartenflora.di
 
 import android.content.Context
 import androidx.room.Room
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Binds
 import dagger.Module
@@ -13,9 +16,13 @@ import de.gartenflora.BuildConfig
 import de.gartenflora.data.local.AppDatabase
 import de.gartenflora.data.local.PlantObservationDao
 import de.gartenflora.data.remote.GeminiApiService
+import de.gartenflora.data.remote.PlantIdApiService
 import de.gartenflora.data.remote.PlantNetApiService
 import de.gartenflora.data.repository.PlantRepository
 import de.gartenflora.data.repository.PlantRepositoryImpl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -38,45 +45,84 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("default_okhttp")
     fun provideOkHttpClient(): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
-            } else {
-                HttpLoggingInterceptor.Level.NONE
-            }
+        val logging = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                    else HttpLoggingInterceptor.Level.NONE
         }
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
+            .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
 
+    /** Dedicated OkHttp client that injects the Plant.id Api-Key on every request. */
+    @Provides
+    @Singleton
+    @Named("plantid_okhttp")
+    fun providePlantIdOkHttpClient(
+        @Named("plantid_api_key") apiKey: String
+    ): OkHttpClient {
+        val logging = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                    else HttpLoggingInterceptor.Level.NONE
+        }
+        return OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val req = chain.request().newBuilder()
+                    .addHeader("Api-Key", apiKey)
+                    .build()
+                chain.proceed(req)
+            }
+            .addInterceptor(logging)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
+
+    // ── Retrofit instances ────────────────────────────────────────────────────
+
     @Provides
     @Singleton
     @Named("plantnet_retrofit")
-    fun providePlantNetRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
-        val contentType = "application/json".toMediaType()
-        return Retrofit.Builder()
-            .baseUrl("https://my-api.plantnet.org/")
-            .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .build()
-    }
+    fun providePlantNetRetrofit(
+        @Named("default_okhttp") okHttpClient: OkHttpClient,
+        json: Json
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl("https://my-api.plantnet.org/")
+        .client(okHttpClient)
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
 
     @Provides
     @Singleton
     @Named("gemini_retrofit")
-    fun provideGeminiRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
-        val contentType = "application/json".toMediaType()
-        return Retrofit.Builder()
-            .baseUrl("https://generativelanguage.googleapis.com/")
-            .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .build()
-    }
+    fun provideGeminiRetrofit(
+        @Named("default_okhttp") okHttpClient: OkHttpClient,
+        json: Json
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl("https://generativelanguage.googleapis.com/")
+        .client(okHttpClient)
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
+
+    @Provides
+    @Singleton
+    @Named("plantid_retrofit")
+    fun providePlantIdRetrofit(
+        @Named("plantid_okhttp") okHttpClient: OkHttpClient,
+        json: Json
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl("https://plant.id/api/")
+        .client(okHttpClient)
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
+
+    // ── API services ──────────────────────────────────────────────────────────
 
     @Provides
     @Singleton
@@ -91,12 +137,52 @@ object NetworkModule {
     ): GeminiApiService = retrofit.create(GeminiApiService::class.java)
 
     @Provides
+    @Singleton
+    fun providePlantIdApiService(
+        @Named("plantid_retrofit") retrofit: Retrofit
+    ): PlantIdApiService = retrofit.create(PlantIdApiService::class.java)
+
+    // ── API keys ──────────────────────────────────────────────────────────────
+
+    @Provides
     @Named("plantnet_api_key")
     fun providePlantNetApiKey(): String = BuildConfig.PLANTNET_API_KEY
 
     @Provides
     @Named("gemini_api_key")
     fun provideGeminiApiKey(): String = BuildConfig.GEMINI_API_KEY
+
+    @Provides
+    @Named("plantid_api_key")
+    fun providePlantIdApiKey(): String = BuildConfig.PLANTID_API_KEY
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object FirebaseModule {
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object CoroutineModule {
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.IO)
 }
 
 @Module
@@ -105,13 +191,8 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "gartenflora.db"
-        ).build()
-    }
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
+        Room.databaseBuilder(context, AppDatabase::class.java, "gartenflora.db").build()
 
     @Provides
     @Singleton

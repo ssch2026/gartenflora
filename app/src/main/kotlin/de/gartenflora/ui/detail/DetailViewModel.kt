@@ -38,6 +38,7 @@ data class DetailUiState(
     val isDeleted: Boolean = false
 ) {
     val geminiAvailable: Boolean = BuildConfig.GEMINI_API_KEY.isNotBlank()
+    val plantIdAvailable: Boolean = BuildConfig.PLANTID_API_KEY.isNotBlank()
 }
 
 @HiltViewModel

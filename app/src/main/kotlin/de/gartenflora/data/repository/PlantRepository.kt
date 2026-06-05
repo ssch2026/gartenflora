@@ -1,5 +1,6 @@
 package de.gartenflora.data.repository
 
+import de.gartenflora.domain.model.DiagnoseResult
 import de.gartenflora.domain.model.PlantCandidate
 import de.gartenflora.domain.model.PlantObservation
 import kotlinx.coroutines.flow.Flow
@@ -29,4 +30,14 @@ interface PlantRepository {
     suspend fun getProjects(): Result<List<Pair<String, String>>>
 
     suspend fun generateCareNotes(scientificName: String): Result<String>
+
+    /**
+     * Send one photo (by local path) to Plant.id health assessment.
+     * Returns a structured [DiagnoseResult] with disease suggestions + treatment info.
+     */
+    suspend fun diagnoseHealth(
+        imagePath: String,
+        latitude: Double? = null,
+        longitude: Double? = null
+    ): Result<DiagnoseResult>
 }

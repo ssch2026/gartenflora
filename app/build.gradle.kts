@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.services)
 }
 
 val localProperties = Properties().apply {
@@ -141,6 +142,12 @@ dependencies {
 
     // Accompanist
     implementation(libs.accompanist.permissions)
+
+    // Firebase (BOM manages all versions)
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
 
     // Unit Tests
     testImplementation(libs.junit)

@@ -25,6 +25,7 @@ import androidx.navigation.navArgument
 import de.gartenflora.R
 import de.gartenflora.ui.capture.CaptureScreen
 import de.gartenflora.ui.detail.DetailScreen
+import de.gartenflora.ui.diagnose.DiagnoseScreen
 import de.gartenflora.ui.garden.MeinGartenScreen
 import de.gartenflora.ui.results.ResultsScreen
 import de.gartenflora.ui.settings.SettingsScreen
@@ -40,6 +41,9 @@ sealed class Screen(val route: String) {
         fun createRoute(observationId: Long) = "detail/$observationId"
     }
     object Settings : Screen("settings")
+    object Diagnose : Screen("diagnose/{observationId}") {
+        fun createRoute(observationId: Long) = "diagnose/$observationId"
+    }
 }
 
 data class BottomNavItem(
@@ -163,11 +167,26 @@ fun AppNavigation() {
                 val observationId = backStackEntry.arguments?.getLong("observationId") ?: 0L
                 DetailScreen(
                     observationId = observationId,
-                    onNavigateUp = { navController.navigateUp() }
+                    onNavigateUp = { navController.navigateUp() },
+                    onNavigateToDiagnose = { id ->
+                        navController.navigate(Screen.Diagnose.createRoute(id))
+                    }
                 )
             }
             composable(Screen.Settings.route) {
                 SettingsScreen()
+            }
+            composable(
+                route = Screen.Diagnose.route,
+                arguments = listOf(
+                    navArgument("observationId") { type = NavType.LongType }
+                )
+            ) { backStackEntry ->
+                val observationId = backStackEntry.arguments?.getLong("observationId") ?: 0L
+                DiagnoseScreen(
+                    observationId = observationId,
+                    onNavigateUp = { navController.navigateUp() }
+                )
             }
         }
     }

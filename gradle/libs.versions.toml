@@ -23,6 +23,7 @@ compose-ui-test = "1.7.5"
 accompanist = "0.36.0"
 core-ktx = "1.13.1"
 lifecycle = "2.8.7"
+google-services = "4.4.2"
 
 [libraries]
 # AndroidX Core
@@ -99,3 +100,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }

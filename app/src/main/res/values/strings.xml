@@ -100,6 +100,24 @@
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
 
+    <!-- DetailScreen — Plant.id -->
+    <string name="detail_diagnose">Pflanze untersuchen (Plant.id)</string>
+
+    <!-- DiagnoseScreen -->
+    <string name="diagnose_title">Pflanzendiagnose</string>
+    <string name="diagnose_select_photo">Foto für die Analyse auswählen</string>
+    <string name="diagnose_no_photos">Keine Fotos vorhanden — zuerst ein Foto aufnehmen</string>
+    <string name="diagnose_analyze">Jetzt analysieren</string>
+    <string name="diagnose_analyzing">Wird analysiert…</string>
+    <string name="diagnose_healthy">Pflanze gesund</string>
+    <string name="diagnose_problems">Probleme erkannt</string>
+    <string name="diagnose_probability">Wahrscheinlichkeit</string>
+    <string name="diagnose_prevention">Vorbeugung</string>
+    <string name="diagnose_treatment_bio">Biologische Behandlung</string>
+    <string name="diagnose_treatment_chem">Chemische Behandlung</string>
+    <string name="diagnose_similar">Ähnliche Fälle</string>
+    <string name="diagnose_hint">Artname + Foto werden an Plant.id (Kindwise) gesendet</string>
+
     <!-- Themes (needed for manifest) -->
     <string name="theme_label">GartenFlora</string>
 </resources>

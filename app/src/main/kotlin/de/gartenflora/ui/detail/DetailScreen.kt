@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
@@ -67,6 +68,7 @@ import java.util.Locale
 fun DetailScreen(
     observationId: Long,
     onNavigateUp: () -> Unit,
+    onNavigateToDiagnose: (Long) -> Unit = {},
     viewModel: DetailViewModel = hiltViewModel()
 ) {
     LaunchedEffect(observationId) {
@@ -297,6 +299,18 @@ fun DetailScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+
+                    // Diagnose button (Plant.id)
+                    if (uiState.plantIdAvailable && !uiState.isEditMode) {
+                        Button(
+                            onClick = { onNavigateToDiagnose(observationId) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Filled.BugReport, contentDescription = null)
+                            Spacer(modifier = Modifier.size(8.dp))
+                            Text(stringResource(R.string.detail_diagnose))
+                        }
                     }
 
                     // User notes
